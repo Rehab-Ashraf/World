@@ -6,7 +6,7 @@ namespace World.Core.DomainEntities
 {
     public abstract class DomainEntity<TId>
     {
-        public TId Id { get; private set; }
+        public TId Id { get; protected set; }
         protected DomainEntity()
         {
 
