@@ -3,13 +3,13 @@ namespace World.Data.Repository.CityRepositories
 {
     using Microsoft.EntityFrameworkCore;
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using World.Core.DomainEntities.Cities;
-    using World.Core.DomainEntities.Countries;
+    using World.Core.DomainEntities.Paging;
     using World.Core.Interfaces.City;
     using World.Data.EF.Context;
+    using World.Data.Repository.PagingRepository;
+
     public class CityRepository:ICityRepository
     {
         private readonly WorldDbContext _worldDbContext;
@@ -17,7 +17,18 @@ namespace World.Data.Repository.CityRepositories
         {
             _worldDbContext = worldDbContext;
         }
+        public async Task<bool> IsDupeCity(City city)
+        {
+            var country = await _worldDbContext.Countries.FindAsync(city.Country.Id);
+            city.UpdateCountry(country);
 
+            bool isDupeCity = await _worldDbContext.Cities.AnyAsync(c => c.Name == city.Name
+                                                          && c.Latitude == city.Latitude
+                                                          && c.Longtitude == city.Longtitude
+                                                          //check for country
+                                                          && c.Country.Id == country.Id);
+            return isDupeCity;
+        }
         public async Task<int> AddCityAsync(City city)
         {
             var country = await _worldDbContext.Countries.FindAsync(city.Country.Id);
@@ -36,24 +47,26 @@ namespace World.Data.Repository.CityRepositories
             return city.Id;
         }
 
-        public async Task<List<City>> GetAllCitiesAsync(int pageNumber = 1, int pageSize = 20)
+        public async Task<PaginationResult<City>> GetAllCitiesAsync(PagingParams pagingParams,
+            string sortColumn = null,
+            string sortOrder = null,
+            string filterColumn = null,
+            string filterQuery = null)
         {
-            if(pageNumber == 0)
-            {
-                pageNumber = 0;
-            }
-            else
-            {
-                pageNumber = pageNumber - 1;
-            }
-            if(pageSize == 0)
-            {
-                pageSize = 20;
-            }
-            return await _worldDbContext.Cities
-                .Skip(pageNumber*pageSize)
-                .Take(pageSize)
-                .Include(c => c.Country).ToListAsync();
+            var queryableCity = _worldDbContext.Cities.AsQueryable();
+            return await queryableCity.Include(c => c.Country).GetPagedResultAsync(pagingParams.PageNumber, 
+                pagingParams.PageSize,sortColumn,sortOrder,filterColumn,filterQuery);
+        }
+
+        public async Task<bool> IsDupeCityAsync(City city)
+        {
+            var country = await _worldDbContext.Countries.FindAsync(city.Country.Id);
+            bool isDupeCity = await _worldDbContext.Cities.AnyAsync(c => c.Name == city.Name
+                                                                      && c.Latitude == city.Latitude
+                                                                      && c.Longtitude == city.Longtitude
+                                                                      //check for country
+                                                                      && c.Country.Id == country.Id );
+            return isDupeCity;
         }
     }
 }

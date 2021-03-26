@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace World.Api.Models.Country
 {
@@ -8,7 +9,9 @@ namespace World.Api.Models.Country
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        [JsonPropertyName("iso2")]
         public string ISO2 { get; set; }
+        [JsonPropertyName("iso3")]
         public string ISO3 { get; set; }
 
         public static CountryModel New(int id , string name ,string iso2 , string iso3)

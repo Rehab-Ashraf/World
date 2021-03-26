@@ -25,6 +25,7 @@ namespace World.Web.Api
 
         public IConfiguration Configuration { get; }
         private readonly IWebHostEnvironment _env;
+        private readonly string _portalFeAllowSpecificOrigins = "portal_fe";
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -43,20 +44,38 @@ namespace World.Web.Api
                                   builder =>
                                   {
                                       builder.WithOrigins("*");
+                                      builder.AllowAnyOrigin();
+                                      builder.AllowAnyHeader();
+                                      builder.AllowAnyMethod();
+
                                   });
             });
-
+            if (!_env.IsDevelopment())
+            {
+                //TODO: <Startup> | Init to use CORS, but need to revamp.
+                services.AddCors(options =>
+                {
+                    var allowedOrigins = Configuration.GetSection("AllowedOrigin").Get<string[]>();
+                    options.AddPolicy(_portalFeAllowSpecificOrigins,
+                    builder =>
+                    {
+                        builder.WithOrigins(allowedOrigins)
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+                });
+            }
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
                     Title = "World API",
-                    Description = "Construction - APIs documentation ",
+                    Description = "World - APIs documentation ",
                     TermsOfService = null,
                     Contact = new OpenApiContact
                     {
-                        Name = "Construction Team.",
+                        Name = "World Team.",
                         Email = "abdalla93d@gmail.com",
                         Url = new Uri("http://c-systems.com")
                     }
@@ -87,7 +106,7 @@ namespace World.Web.Api
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("../swagger/v1/swagger.json", "Construction APIs ver 1.0");
+                c.SwaggerEndpoint("../swagger/v1/swagger.json", "World APIs ver 1.0");
                 c.RoutePrefix = "docs";
             });
 

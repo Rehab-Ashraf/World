@@ -9,6 +9,7 @@ namespace World.Web.Api.Country
     using World.Core.DomainEntities.Countries;
     using World.Api.Models;
     using System.Collections.Generic;
+    using World.Core.DomainEntities.Paging;
 
     [Route("api/[controller]")]
     [ApiController]
@@ -35,11 +36,15 @@ namespace World.Web.Api.Country
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCountriesAsync()
+        public async Task<IActionResult> GetAllCountriesAsync([FromQuery] PagingParams pagingParams,
+            string sortColumn = null,
+            string sortOrder = null,
+            string filterColumn = null,
+            string filterQuery = null)
         {
-            var countries = await _countryService.GetCountriesAsync();
-            var countryModel = _mapper.Map<List<CountryModel>>(countries);
-            var result = GetCountriesOutputModel.Create(countryModel);
+            var countries = await _countryService.GetCountriesAsync(pagingParams,sortColumn,sortOrder , filterColumn , filterQuery);
+            var countryModel = _mapper.Map<List<CountryModel>>(countries.Result);
+            var result = GetCountriesOutputModel.Create(countryModel , countries);
             return Ok(ResponseResult.SucceededWithData(result));
         }
     }
