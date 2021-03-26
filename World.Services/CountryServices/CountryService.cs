@@ -4,6 +4,7 @@ namespace World.Services.CountryServices
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using World.Core.DomainEntities.Countries;
+    using World.Core.DomainEntities.Paging;
     using World.Core.Interfaces.Country;
     public class CountryService:ICountryService
     {
@@ -20,6 +21,10 @@ namespace World.Services.CountryServices
         public async Task<List<Country>> GetCountriesAsync()
         {
             return await _countryRepository.GetCountriesAsync();
+        }
+        public async Task<PaginationResult<Country>> GetCountriesAsync(PagingParams pagingParams,string sortColumn ,string sortOrder , string filterColumn , string filterQuery)
+        {
+            return await _countryRepository.GetCountriesAsync(pagingParams ,  sortColumn ,sortOrder , filterColumn , filterQuery);
         }
     }
 }
